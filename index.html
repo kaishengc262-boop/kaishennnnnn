@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kai Shen | Design Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. 基础重置 --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background: #000; color: white; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+        /* --- 2. 动画库 --- */
+        @keyframes customFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 泡泡入场只管透明度，缩放交给外层，位移交给内层 JS */
+        @keyframes bubbleFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- 3. HEADER --- */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 30px 8%; z-index: 1000;
+            background: rgba(0,0,0,0.1); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            animation: customFadeUp 0.8s ease forwards;
+        }
+        .logo { font-size: 14px; letter-spacing: 5px; font-weight: 900; color: #fff; text-decoration: none; }
+        nav { display: flex; gap: 20px; }
+        nav a { color: #fff; text-decoration: none; font-size: 11px; font-weight: 700; opacity: 0.5; text-transform: uppercase; transition: 0.3s; }
+
+        /* --- 4. HERO SECTION --- */
+        .hero {
+            position: relative; height: 100vh; height: 100dvh; width: 100%;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+
+        .parallax-scene { position: absolute; inset: -15%; z-index: 1; pointer-events: none; }
+
+        .bubble {
+            position: absolute; border-radius: 50%; 
+            opacity: 0; will-change: transform;
+            animation: bubbleFade 2s ease forwards;
+            background: radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.1), transparent);
+            box-shadow: inset 0 10px 20px rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        /* 初始位置设定 */
+        .bubble1 { width: 45vw; height: 45vw; top: 5%; left: -10%; animation-delay: 0.2s; background: radial-gradient(circle at 75% 30%, rgba(255,80,80,0.1), transparent); }
+        .bubble2 { width: 35vw; height: 35vw; bottom: 10%; right: -10%; animation-delay: 0.4s; background: radial-gradient(circle at 75% 30%, rgba(80,80,255,0.1), transparent); }
+        .bubble3 { width: 20vw; height: 20vw; top: 40%; left: 45%; animation-delay: 0.6s; background: radial-gradient(circle at 75% 30%, rgba(80,255,200,0.08), transparent); }
+
+        /* 内容适配修复 */
+        .hero-content { position: relative; z-index: 10; text-align: center; padding: 0 8%; width: 100%; }
+        
+        .hero-content h1 { 
+            /* 针对手机做了更精细的限制 */
+            font-size: clamp(50px, 14vw, 100px); 
+            font-weight: 900; 
+            line-height: 0.9; 
+            letter-spacing: -2px; 
+            margin-bottom: 20px;
+            opacity: 0; 
+            animation: customFadeUp 1s ease 0.4s forwards; 
+        }
+        
+        .hero-content p { 
+            color: #888; font-size: 15px; line-height: 1.6; margin-bottom: 35px; max-width: 400px; margin-left: auto; margin-right: auto;
+            opacity: 0; animation: customFadeUp 1s ease 0.6s forwards;
+        }
+
+        .btn-group { display: flex; gap: 12px; justify-content: center; opacity: 0; animation: customFadeUp 1s ease 0.8s forwards; }
+        .btn { padding: 15px 30px; border: 1px solid #fff; color: #fff; text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: 2px; transition: 0.3s; }
+        .btn.primary { background: #fff; color: #000; }
+        .btn:hover { background: #fff; color: #000; transform: translateY(-3px); }
+
+        /* --- 5. WORK SECTION --- */
+        .work-section { background: #ffffff; color: #000; padding: 120px 8%; position: relative; overflow: hidden; }
+        .work-grid-bg { position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px); background-size: 35px 35px; }
+        .work-section h2 { font-size: clamp(30px, 7vw, 45px); font-weight: 900; text-align: center; margin-bottom: 80px; position: relative; z-index: 3; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px 40px; position: relative; z-index: 3; }
+
+        .work-item { display: block; text-decoration: none; color: #000; opacity: 0; transform: translateY(30px); transition: 1.2s cubic-bezier(0.2, 1, 0.3, 1); }
+        .work-item.show { opacity: 1; transform: translateY(0); }
+
+        .img-container { position: relative; width: 100%; aspect-ratio: 16/10; overflow: hidden; background: #eee; margin-bottom: 15px; }
+        .img-container::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%) skewX(-25deg); background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.6), transparent); transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .work-item:hover .img-container::after { transform: translateX(120%) skewX(-25deg); }
+        .work-item img { width: 100%; height: 100%; object-fit: cover; transition: 1.5s cubic-bezier(0.19, 1, 0.22, 1); }
+        .work-item:hover img { transform: scale(1.08); }
+        .work-label { font-size: 11px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; text-align: center; display: block; }
+
+        /* --- 6. CONTACT --- */
+        .contact { padding: 120px 8%; text-align: center; background: #000; }
+        .contact h2 { font-size: clamp(38px, 9vw, 65px); font-weight: 900; margin-bottom: 30px; }
+        footer { padding: 40px 8%; text-align: center; border-top: 1px solid #222; font-size: 10px; color: #444; letter-spacing: 2px; }
+
+        /* --- 手机端最终适配 --- */
+        @media (max-width: 768px) {
+            header { padding: 20px 6%; }
+            .hero-content h1 { font-size: 60px; line-height: 0.95; letter-spacing: -2px; }
+            .hero-content p { font-size: 14px; padding: 0 10px; }
+            .btn-group { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 280px; }
+            .gallery { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="#" class="logo">KAI SHEN</a>
+    <nav>
+        <a href="#work">Work</a>
+        <a href="https://wa.me/60174769089">Contact</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="parallax-scene" id="scene">
+        <div class="bubble bubble1" data-depth="0.1"></div>
+        <div class="bubble bubble2" data-depth="0.2"></div>
+        <div class="bubble bubble3" data-depth="0.4"></div>
+    </div>
+    <div class="hero-content">
+        <h1>KS<br>PORTFOLIO</h1>
+        <p>Minimalist designer specializing in motion visuals, posters, and modern branding.</p>
+        <div class="btn-group">
+            <a href="#work" class="btn primary" id="btn-work">View Works</a>
+            <a href="https://wa.me/60174769089" class="btn">My WhatsApp</a>
+        </div>
+    </div>
+</section>
+
+<section id="work" class="work-section">
+    <div class="work-grid-bg"></div>
+    <h2>My Works</h2>
+    <div class="gallery">
+        <a href="poster.html" class="work-item">
+            <div class="img-container"><img src="https://i.postimg.cc/59PrQ301/ELDEN-RING-3.jpg"></div>
+            <span class="work-label">Poster Design</span>
+        </a>
+        <a href="animation.html" class="work-item">
+            <div class="img-container"><img src="https://i.postimg.cc/X7nj26By/ping-mu-jie-tu-2026-03-06-212904.png"></div>
+            <span class="work-label">Animation</span>
+        </a>
+        <a href="logo.html" class="work-item">
+            <div class="img-container"><img src="https://i.postimg.cc/DZzQQMdn/logo-lsss-01.jpg"></div>
+            <span class="work-label">Logo Branding</span>
+        </a>
+    </div>
+</section>
+
+<section class="contact">
+    <h2>Let's Talk</h2>
+    <a href="https://wa.me/60174769089" class="btn">Start a Project</a>
+</section>
+
+<footer>© 2026 KAI SHEN.</footer>
+
+<script>
+    const scene = document.getElementById('scene');
+    const btnWork = document.getElementById('btn-work');
+
+    // 修复：使用 translate3d 提高性能，并确保不被 CSS 动画覆盖
+    function moveBubbles(x, y) {
+        const bubbles = scene.querySelectorAll('.bubble');
+        bubbles.forEach(b => {
+            const d = b.getAttribute('data-depth');
+            const moveX = x * d * 150; // 增加了一点移动幅度
+            const moveY = y * d * 150;
+            b.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        });
+    }
+
+    // 1. 电脑端鼠标逻辑
+    document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth > 768) {
+            const x = (e.clientX / window.innerWidth - 0.5);
+            const y = (e.clientY / window.innerHeight - 0.5);
+            moveBubbles(x, y);
+        }
+    });
+
+    // 2. 手机端授权逻辑 (修正版)
+    function activateMotion() {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(state => {
+                    if (state === 'granted') {
+                        window.addEventListener('deviceorientation', handleMotion);
+                    }
+                }).catch(console.error);
+        } else {
+            window.addEventListener('deviceorientation', handleMotion);
+        }
+    }
+
+    function handleMotion(e) {
+        // 只有手机端才运行
+        if (window.innerWidth <= 768) {
+            let x = e.gamma / 45; 
+            let y = (e.beta - 40) / 45;
+            moveBubbles(x, y);
+        }
+    }
+
+    // 关键点：用户必须点击一下按钮才能激活 iOS 的重力感应
+    btnWork.addEventListener('click', activateMotion);
+
+    // 3. 滚动加载动画
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const items = Array.from(document.querySelectorAll('.work-item'));
+                const index = items.indexOf(entry.target);
+                setTimeout(() => {
+                    entry.target.classList.add('show');
+                }, index * 150);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.work-item').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
